@@ -226,6 +226,7 @@ function updateMonthlySalesBySalespersonTable() {
 function updateCharts() {
     updateYearlySalesChart();
     updateMonthlySalesChart();
+    updateMonthlyTargetChart();
 }
 
 function updateYearlySalesChart() {
@@ -337,6 +338,73 @@ function updateMonthlySalesChart() {
                     y: {
                         ticks: {
                             callback: value => formatCurrency(value)
+                        }
+                    }
+                }
+            }
+        });
+    }
+}
+
+function updateMonthlyTargetChart() {
+    const monthlyTotals = Array(12).fill(0);
+
+    filteredData.forEach(item => {
+        const month = item['Month'];
+        monthlyTotals[month - 1] += item['Sales amount'];
+    });
+
+    const achievedPercent = monthlyTotals.map((sales, idx) => {
+        const target = MONTHLY_TARGETS[idx + 1] || 1; // Avoid divide-by-zero
+        return Math.round((sales / target) * 100);
+    });
+
+    const ctx = document.getElementById('monthlyTargetChart').getContext('2d');
+
+    if (window.monthlyTargetChart) {
+        window.monthlyTargetChart.data.datasets[0].data = achievedPercent;
+        window.monthlyTargetChart.update();
+    } else {
+        window.monthlyTargetChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: MONTH_NAMES,
+                datasets: [{
+                    label: '% Target Achieved',
+                    data: achievedPercent,
+                    backgroundColor: achievedPercent.map(p => p >= 100 ? 'rgba(40, 167, 69, 0.7)' : 'rgba(255, 99, 132, 0.7)'),
+                    borderColor: 'rgba(0, 0, 0, 0.1)',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: context => `${context.raw}%`
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Monthly Target Achievement',
+                        font: {
+                            size: 16
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 150,
+                        title: {
+                            display: true,
+                            text: '% of Target'
+                        },
+                        ticks: {
+                            callback: value => value + '%'
                         }
                     }
                 }
