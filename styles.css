@@ -293,3 +293,40 @@ canvas {
         grid-template-columns: 1fr;
     }
 }
+
+.summary-card.top-performer .btn {
+    padding: 6px 10px;
+    font-size: 14px;
+}
+
+.export-actions {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.export-actions button {
+    width: 180px;
+}
+
+
+.summary-card.export-report .card-icon {
+    background-color: var(--secondary-color);
+}
+
+.export-mode {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    filter: none !important;
+    opacity: 1 !important;
+}
+
+.export-mode * {
+    background-color: transparent !important;
+    color: #000 !important;
+    box-shadow: none !important;
+    filter: none !important;
+    opacity: 1 !important;
+}
+
+
