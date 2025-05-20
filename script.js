@@ -39,12 +39,19 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function toggleChartVisibility(e) {
-    const chartId = e.target.getAttribute('data-chart');
-    const chartContainer = document.querySelector(`#${chartId}`).parentElement;
-    chartContainer.style.display = chartContainer.style.display === 'none' ? 'block' : 'none';
-    e.target.innerHTML = chartContainer.style.display === 'none' ?
-        '<i class="fas fa-eye-slash"></i> Show' : '<i class="fas fa-eye"></i> Hide';
+    const button = e.currentTarget;
+    const chartId = button.getAttribute('data-chart');
+    const chartContainer = document.getElementById(chartId)?.parentElement;
+
+    if (chartContainer) {
+        const isVisible = chartContainer.style.display !== 'none';
+        chartContainer.style.display = isVisible ? 'none' : 'block';
+        button.innerHTML = isVisible
+            ? '<i class="fas fa-eye-slash"></i> Show'
+            : '<i class="fas fa-eye"></i> Hide';
+    }
 }
+
 
 async function loadData() {
     try {
