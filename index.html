@@ -10,6 +10,9 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/luxon@3.3.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.2.0"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
 </head>
 <body>
     <div class="dashboard-container">
@@ -79,6 +82,24 @@
                     <p>Top Performer</p>
                 </div>
             </div>
+
+            <div class="summary-card export-report">
+    <div class="card-icon">
+        <i class="fas fa-file-export"></i>
+    </div>
+    <div class="card-content">
+        <h3>Export Report</h3>
+        <div class="d-flex flex-column mt-2">
+            <button id="exportDashboardPNG" class="btn btn-outline-primary btn-sm mb-2">
+                <i class="fas fa-image me-2"></i> Export as PNG
+            </button>
+            <button id="exportDashboardPDF" class="btn btn-outline-danger btn-sm">
+                <i class="fas fa-file-pdf me-2"></i> Export as PDF
+            </button>
+        </div>
+    </div>
+</div>
+
         </div>
 
         <div class="chart-section">
@@ -179,10 +200,5 @@
         </div>
     </div>
     <script src="script.js"></script>
-    
-    <footer class="dashboard-footer text-center mt-5">
-    <p><strong>© 2025 Md. Afzal Ismail. All rights reserved. </strong></p>
-</footer>
-
 </body>
 </html>
