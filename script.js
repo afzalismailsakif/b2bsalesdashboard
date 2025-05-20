@@ -350,3 +350,57 @@ function updateMonthlySalesBySalespersonTable() {
         </tr>
     `).join('');
 }
+
+document.getElementById('exportDashboardPNG').addEventListener('click', () => {
+    const dashboard = document.querySelector('.dashboard-container');
+    dashboard.classList.add('export-mode');
+
+    html2canvas(dashboard, {
+        scale: 3,
+        useCORS: true,
+        backgroundColor: '#ffffff'
+    }).then(canvas => {
+        dashboard.classList.remove('export-mode');
+        const link = document.createElement('a');
+        link.download = 'sales-dashboard.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    });
+});
+
+
+
+document.getElementById('exportDashboardPDF').addEventListener('click', () => {
+    const dashboard = document.querySelector('.dashboard-container');
+    dashboard.classList.add('export-mode');
+
+    html2canvas(dashboard, {
+        scale: 1,
+        useCORS: true,
+        backgroundColor: '#ffffff'
+    }).then(canvas => {
+        dashboard.classList.remove('export-mode');
+        const imgData = canvas.toDataURL('image/png');
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const imgWidth = pageWidth;
+        const imgHeight = canvas.height * imgWidth / canvas.width;
+
+        let heightLeft = imgHeight;
+        let position = 0;
+
+        while (heightLeft > 0) {
+            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+            if (heightLeft > 0) {
+                pdf.addPage();
+                position = 0;
+            }
+        }
+
+        pdf.save('sales-dashboard.pdf');
+    });
+});
+
