@@ -1,37 +1,22 @@
 // Configuration - Replace with your Google Sheets published URL
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR5_ZuCTFWUvfyCNla7wmkg9O0BcM6IOW702XkVpOSbD3dc_4I1Hp1-hSaCLiW9u62wcYDSs9UE2faM/pub?output=csv';
+
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const MONTHLY_TARGETS = {
-    1: 0, // January
-    2: 35000, // February
-    3: 35000,
-    4: 20000,
-    5: 20000,
-    6: 35000,
-    7: 35000,
-    8: 35000,
-    9: 35000,
-    10: 35000,
-    11: 35000,
-    12: 35000
+    1: 0, 2: 35000, 3: 35000, 4: 20000, 5: 20000, 6: 35000,
+    7: 35000, 8: 35000, 9: 35000, 10: 35000, 11: 35000, 12: 35000
 };
 
+const formatCurrency = (value) => new Intl.NumberFormat('en-GB', {
+    style: 'currency',
+    currency: 'GBP'
+}).format(value);
 
-
-// Currency formatter for GBP
-const formatCurrency = (value) => {
-    return new Intl.NumberFormat('en-GB', {
-        style: 'currency',
-        currency: 'GBP'
-    }).format(value);
-};
-
-// Global variables
+// Global Variables
 let salesData = [];
 let filteredData = [];
 let yearlySalesChart, monthlySalesChart;
 
-// DOM Elements
 const yearFilter = document.getElementById('yearFilter');
 const monthFilter = document.getElementById('monthFilter');
 const salespersonFilter = document.getElementById('salespersonFilter');
@@ -43,6 +28,7 @@ const topPerformerElement = document.getElementById('topPerformer');
 const lastUpdatedElement = document.getElementById('lastUpdated');
 const topPerformersTable = document.querySelector('#topPerformersTable tbody');
 const salesTeamTable = document.querySelector('#salesTeamTable tbody');
+const monthlyTargetTable = document.querySelector('#monthlyTargetTable tbody');
 
 document.addEventListener('DOMContentLoaded', function () {
     applyFilters.addEventListener('click', applyDashboardFilters);
@@ -51,7 +37,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     loadData();
-    lastUpdatedElement.textContent = `Last updated: ${new Date().toLocaleString()}`;
 });
 
 function toggleChartVisibility(e) {
@@ -68,11 +53,9 @@ function toggleChartVisibility(e) {
     }
 }
 
-
 async function loadData() {
     try {
-        const sheetUrl = `${SHEET_URL}&t=${Date.now()}`;
-        const response = await fetch(sheetUrl);
+        const response = await fetch(`${SHEET_URL}&t=${Date.now()}`);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const csvData = await response.text();
         parseCSVData(csvData);
@@ -81,24 +64,21 @@ async function loadData() {
         lastUpdatedElement.textContent = `Last updated: ${new Date().toLocaleString()}`;
     } catch (error) {
         console.error('Error loading data:', error);
-        console.warn("Using test data instead");
-        loadTestData();
     }
 }
 
 function parseCSVData(csv) {
     const lines = csv.split('\n');
     const headers = lines[0].split(',').map(h => h.trim());
-
     salesData = [];
 
     for (let i = 1; i < lines.length; i++) {
         const values = lines[i].split(',');
         if (values.length === headers.length) {
             const entry = {};
-            for (let j = 0; j < headers.length; j++) {
-                entry[headers[j]] = values[j].trim();
-            }
+            headers.forEach((header, j) => {
+                entry[header] = values[j].trim();
+            });
             entry['Sales amount'] = parseFloat(entry['Sales amount']) || 0;
             entry['Month'] = parseInt(entry['Month']) || 1;
             salesData.push(entry);
@@ -115,24 +95,15 @@ function initializeFilters() {
     const salespeople = [...new Set(salesData.map(item => item['Sales person name']))].sort();
 
     years.forEach(year => {
-        const option = document.createElement('option');
-        option.value = year;
-        option.textContent = year;
-        yearFilter.appendChild(option);
+        yearFilter.innerHTML += `<option value="${year}">${year}</option>`;
     });
 
-    for (let i = 0; i < 12; i++) {
-        const option = document.createElement('option');
-        option.value = i + 1;
-        option.textContent = MONTH_NAMES[i];
-        monthFilter.appendChild(option);
-    }
+    MONTH_NAMES.forEach((name, index) => {
+        monthFilter.innerHTML += `<option value="${index + 1}">${name}</option>`;
+    });
 
     salespeople.forEach(person => {
-        const option = document.createElement('option');
-        option.value = person;
-        option.textContent = person;
-        salespersonFilter.appendChild(option);
+        salespersonFilter.innerHTML += `<option value="${person}">${person}</option>`;
     });
 }
 
@@ -141,11 +112,11 @@ function applyDashboardFilters() {
     const selectedMonth = monthFilter.value;
     const selectedSalesperson = salespersonFilter.value;
 
-    filteredData = salesData.filter(item => {
-        return (selectedYear === 'all' || item['Sales year'] === selectedYear) &&
-            (selectedMonth === 'all' || item['Month'] === parseInt(selectedMonth)) &&
-            (selectedSalesperson === 'all' || item['Sales person name'] === selectedSalesperson);
-    });
+    filteredData = salesData.filter(item =>
+        (selectedYear === 'all' || item['Sales year'] === selectedYear) &&
+        (selectedMonth === 'all' || item['Month'] === parseInt(selectedMonth)) &&
+        (selectedSalesperson === 'all' || item['Sales person name'] === selectedSalesperson)
+    );
 
     updateSummary();
     updateCharts();
@@ -153,75 +124,32 @@ function applyDashboardFilters() {
 }
 
 function updateSummary() {
-    const totalSales = filteredData.reduce((sum, item) => sum + item['Sales amount'], 0);
-    const avgSales = filteredData.length > 0 ? totalSales / filteredData.length : 0;
-    const topPerformer = getTopPerformer(filteredData);
+    const total = filteredData.reduce((sum, item) => sum + item['Sales amount'], 0);
+    const avg = filteredData.length > 0 ? total / filteredData.length : 0;
+    const top = getTopPerformer(filteredData);
 
-    totalSalesElement.textContent = formatCurrency(totalSales);
-    avgSalesElement.textContent = formatCurrency(avgSales);
-    transactionCountElement.textContent = filteredData.length.toLocaleString();
-    topPerformerElement.textContent = topPerformer ? `${topPerformer.name} (${formatCurrency(topPerformer.amount)})` : '-';
+    totalSalesElement.textContent = formatCurrency(total);
+    avgSalesElement.textContent = formatCurrency(avg);
+    transactionCountElement.textContent = filteredData.length;
+    topPerformerElement.textContent = top ? `${top.name} (${formatCurrency(top.amount)})` : '-';
 }
 
 function getTopPerformer(data) {
-    if (data.length === 0) return null;
-
     const salesByPerson = {};
     data.forEach(item => {
         const name = item['Sales person name'];
         salesByPerson[name] = (salesByPerson[name] || 0) + item['Sales amount'];
     });
 
-    let topName = '';
-    let topAmount = 0;
-
+    let topName = '', topAmount = 0;
     for (const [name, amount] of Object.entries(salesByPerson)) {
         if (amount > topAmount) {
             topAmount = amount;
             topName = name;
         }
     }
-
     return { name: topName, amount: topAmount };
 }
-
-function updateMonthlySalesBySalespersonTable() {
-    const tableBody = document.querySelector('#monthlySalesPersonTable tbody');
-    tableBody.innerHTML = '';
-
-    const salesMap = {}; // { "John Doe": { 1: 5000, 2: 6000, ... } }
-
-    filteredData.forEach(item => {
-        const name = item['Sales person name'];
-        const month = item['Month'];
-        const amount = item['Sales amount'];
-
-        if (!salesMap[name]) {
-            salesMap[name] = Array(12).fill(0); // 12 months
-        }
-        salesMap[name][month - 1] += amount;
-    });
-
-    const sortedNames = Object.keys(salesMap).sort();
-
-    sortedNames.forEach(name => {
-        const row = document.createElement('tr');
-
-        const nameCell = document.createElement('td');
-        nameCell.textContent = name;
-        row.appendChild(nameCell);
-
-        salesMap[name].forEach(total => {
-            const cell = document.createElement('td');
-            cell.textContent = total > 0 ? formatCurrency(total) : '-';
-            row.appendChild(cell);
-        });
-
-        tableBody.appendChild(row);
-    });
-}
-
-
 
 function updateCharts() {
     updateYearlySalesChart();
@@ -230,62 +158,32 @@ function updateCharts() {
 }
 
 function updateYearlySalesChart() {
-    const yearlyData = {};
+    const ctx = document.getElementById('yearlySalesChart').getContext('2d');
     const years = [...new Set(filteredData.map(item => item['Sales year']))].sort();
     const salespeople = [...new Set(filteredData.map(item => item['Sales person name']))].sort();
 
-    salespeople.forEach(person => {
-        yearlyData[person] = {};
-        years.forEach(year => {
-            yearlyData[person][year] = 0;
-        });
+    const yearlyData = salespeople.map((person, index) => {
+        const data = years.map(year =>
+            filteredData.filter(item => item['Sales person name'] === person && item['Sales year'] === year)
+                .reduce((sum, item) => sum + item['Sales amount'], 0)
+        );
+        const color = `hsl(${index * 50}, 70%, 60%)`;
+        return { label: person, data, backgroundColor: color };
     });
-
-    filteredData.forEach(item => {
-        const name = item['Sales person name'];
-        const year = item['Sales year'];
-        yearlyData[name][year] += item['Sales amount'];
-    });
-
-    const datasets = salespeople.map((person, index) => {
-        const colors = ['rgba(54, 162, 235, 0.7)', 'rgba(255, 99, 132, 0.7)', 'rgba(75, 192, 192, 0.7)', 'rgba(255, 159, 64, 0.7)', 'rgba(153, 102, 255, 0.7)'];
-        return {
-            label: person,
-            data: years.map(year => yearlyData[person][year]),
-            backgroundColor: colors[index % colors.length],
-            borderColor: colors[index % colors.length].replace('0.7', '1'),
-            borderWidth: 1,
-            borderRadius: 4
-        };
-    });
-
-    const ctx = document.getElementById('yearlySalesChart').getContext('2d');
 
     if (yearlySalesChart) {
-        yearlySalesChart.data.labels = years;
-        yearlySalesChart.data.datasets = datasets;
+        yearlySalesChart.data = { labels: years, datasets: yearlyData };
         yearlySalesChart.update();
     } else {
         yearlySalesChart = new Chart(ctx, {
             type: 'bar',
-            data: {
-                labels: years,
-                datasets: datasets
-            },
+            data: { labels: years, datasets: yearlyData },
             options: {
                 plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: context => `${context.dataset.label}: ${formatCurrency(context.raw)}`
-                        }
-                    }
+                    tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${formatCurrency(ctx.raw)}` } }
                 },
                 scales: {
-                    y: {
-                        ticks: {
-                            callback: value => formatCurrency(value)
-                        }
-                    }
+                    y: { ticks: { callback: val => formatCurrency(val) } }
                 }
             }
         });
@@ -293,53 +191,38 @@ function updateYearlySalesChart() {
 }
 
 function updateMonthlySalesChart() {
-    const monthlyData = {};
-    const months = Array.from({ length: 12 }, (_, i) => i + 1);
-    months.forEach(month => {
-        monthlyData[month] = 0;
-    });
+    const ctx = document.getElementById('monthlySalesChart').getContext('2d');
+    const monthlySales = Array(12).fill(0);
 
     filteredData.forEach(item => {
-        const month = item['Month'];
-        monthlyData[month] += item['Sales amount'];
+        monthlySales[item.Month - 1] += item['Sales amount'];
     });
 
-    const ctx = document.getElementById('monthlySalesChart').getContext('2d');
-    const monthNames = months.map(month => MONTH_NAMES[month - 1]);
-    const amounts = months.map(month => monthlyData[month]);
+    const data = {
+        labels: MONTH_NAMES,
+        datasets: [{
+            label: 'Monthly Sales',
+            data: monthlySales,
+            backgroundColor: 'rgba(75,192,192,0.2)',
+            borderColor: 'rgba(75,192,192,1)',
+            fill: true,
+            tension: 0.4
+        }]
+    };
 
     if (monthlySalesChart) {
-        monthlySalesChart.data.labels = monthNames;
-        monthlySalesChart.data.datasets[0].data = amounts;
+        monthlySalesChart.data = data;
         monthlySalesChart.update();
     } else {
         monthlySalesChart = new Chart(ctx, {
             type: 'line',
-            data: {
-                labels: monthNames,
-                datasets: [{
-                    label: 'Monthly Sales',
-                    data: amounts,
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    fill: true,
-                    tension: 0.4
-                }]
-            },
+            data,
             options: {
                 plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: context => `Sales: ${formatCurrency(context.raw)}`
-                        }
-                    }
+                    tooltip: { callbacks: { label: ctx => `Sales: ${formatCurrency(ctx.raw)}` } }
                 },
                 scales: {
-                    y: {
-                        ticks: {
-                            callback: value => formatCurrency(value)
-                        }
-                    }
+                    y: { ticks: { callback: val => formatCurrency(val) } }
                 }
             }
         });
@@ -347,70 +230,58 @@ function updateMonthlySalesChart() {
 }
 
 function updateMonthlyTargetChart() {
+    const ctx = document.getElementById('monthlyTargetChart').getContext('2d');
     const monthlyTotals = Array(12).fill(0);
-
     filteredData.forEach(item => {
-        const month = item['Month'];
-        monthlyTotals[month - 1] += item['Sales amount'];
+        monthlyTotals[item.Month - 1] += item['Sales amount'];
     });
 
-    const achievedPercent = monthlyTotals.map((sales, idx) => {
-        const target = MONTHLY_TARGETS[idx + 1] || 1; // Avoid divide-by-zero
+    const achieved = monthlyTotals.map((sales, idx) => {
+        const target = MONTHLY_TARGETS[idx + 1] || 1;
         return Math.round((sales / target) * 100);
     });
 
-    const ctx = document.getElementById('monthlyTargetChart').getContext('2d');
+    const dataset = {
+        labels: MONTH_NAMES,
+        datasets: [{
+            label: '% Target Achieved',
+            data: achieved,
+            backgroundColor: achieved.map(p => p >= 100 ? 'rgba(40,167,69,0.7)' : 'rgba(255,99,132,0.7)')
+        }]
+    };
 
     if (window.monthlyTargetChart) {
-        window.monthlyTargetChart.data.datasets[0].data = achievedPercent;
+        window.monthlyTargetChart.data = dataset;
         window.monthlyTargetChart.update();
     } else {
         window.monthlyTargetChart = new Chart(ctx, {
             type: 'bar',
-            data: {
-                labels: MONTH_NAMES,
-                datasets: [{
-                    label: '% Target Achieved',
-                    data: achievedPercent,
-                    backgroundColor: achievedPercent.map(p => p >= 100 ? 'rgba(40, 167, 69, 0.7)' : 'rgba(255, 99, 132, 0.7)'),
-                    borderColor: 'rgba(0, 0, 0, 0.1)',
-                    borderWidth: 1,
-                    borderRadius: 4
-                }]
-            },
+            data: dataset,
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: context => `${context.raw}%`
-                        }
-                    },
-                    title: {
-                        display: true,
-                        text: 'Monthly Target Achievement',
-                        font: {
-                            size: 16
-                        }
-                    }
-                },
                 scales: {
                     y: {
                         beginAtZero: true,
                         max: 150,
-                        title: {
-                            display: true,
-                            text: '% of Target'
-                        },
-                        ticks: {
-                            callback: value => value + '%'
-                        }
+                        ticks: { callback: v => `${v}%` },
+                        title: { display: true, text: '% of Target' }
                     }
                 }
             }
         });
     }
+
+    // Also populate the table
+    monthlyTargetTable.innerHTML = '';
+    achieved.forEach((percent, i) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${MONTH_NAMES[i]}</td>
+            <td>${formatCurrency(monthlyTotals[i])}</td>
+            <td>${formatCurrency(MONTHLY_TARGETS[i + 1])}</td>
+            <td>${percent}%</td>
+        `;
+        monthlyTargetTable.appendChild(row);
+    });
 }
 
 function updatePerformanceTables() {
@@ -420,17 +291,12 @@ function updatePerformanceTables() {
 }
 
 function updateTopPerformersTable() {
-    const months = [...new Set(filteredData.map(item => item['Month']))].sort();
-    const monthlyTotals = {};
-    const topPerformers = [];
+    topPerformersTable.innerHTML = '';
+    for (let m = 1; m <= 12; m++) {
+        const monthData = filteredData.filter(d => d.Month === m);
+        if (monthData.length === 0) continue;
 
-    filteredData.forEach(item => {
-        const month = item['Month'];
-        monthlyTotals[month] = (monthlyTotals[month] || 0) + item['Sales amount'];
-    });
-
-    months.forEach(month => {
-        const monthData = filteredData.filter(item => item['Month'] === month);
+        const total = monthData.reduce((sum, item) => sum + item['Sales amount'], 0);
         const salesByPerson = {};
 
         monthData.forEach(item => {
@@ -438,68 +304,61 @@ function updateTopPerformersTable() {
             salesByPerson[name] = (salesByPerson[name] || 0) + item['Sales amount'];
         });
 
-        let topName = '';
-        let topAmount = 0;
+        const topName = Object.keys(salesByPerson).reduce((a, b) => salesByPerson[a] > salesByPerson[b] ? a : b);
+        const topAmount = salesByPerson[topName];
+        const percent = (topAmount / total) * 100;
 
-        for (const [name, amount] of Object.entries(salesByPerson)) {
-            if (amount > topAmount) {
-                topAmount = amount;
-                topName = name;
-            }
-        }
-
-        const monthTotal = monthlyTotals[month];
-        const percentage = monthTotal > 0 ? (topAmount / monthTotal * 100) : 0;
-
-        topPerformers.push({
-            month: MONTH_NAMES[month - 1],
-            name: topName,
-            amount: topAmount,
-            percentage: percentage
-        });
-    });
-
-    topPerformersTable.innerHTML = '';
-    topPerformers.forEach(performer => {
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td>${performer.month}</td>
-            <td>${performer.name || '-'}</td>
-            <td>${formatCurrency(performer.amount)}</td>
-            <td>${performer.percentage.toFixed(1)}%</td>
+            <td>${MONTH_NAMES[m - 1]}</td>
+            <td>${topName}</td>
+            <td>${formatCurrency(topAmount)}</td>
+            <td>${percent.toFixed(1)}%</td>
         `;
         topPerformersTable.appendChild(row);
-    });
+    }
 }
 
 function updateSalesTeamTable() {
-    const salesByPerson = {};
-    const transactionCounts = {};
+    salesTeamTable.innerHTML = '';
+    const stats = {};
 
     filteredData.forEach(item => {
         const name = item['Sales person name'];
-        salesByPerson[name] = (salesByPerson[name] || 0) + item['Sales amount'];
-        transactionCounts[name] = (transactionCounts[name] || 0) + 1;
+        stats[name] = stats[name] || { total: 0, count: 0 };
+        stats[name].total += item['Sales amount'];
+        stats[name].count++;
     });
 
-    const teamPerformance = Object.entries(salesByPerson).map(([name, amount]) => {
-        return {
-            name: name,
-            total: amount,
-            average: amount / transactionCounts[name],
-            transactions: transactionCounts[name]
-        };
-    }).sort((a, b) => b.total - a.total);
-
-    salesTeamTable.innerHTML = '';
-    teamPerformance.forEach(member => {
+    Object.entries(stats).forEach(([name, stat]) => {
+        const avg = stat.total / stat.count;
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td>${member.name}</td>
-            <td>${formatCurrency(member.total)}</td>
-            <td>${formatCurrency(member.average)}</td>
-            <td>${member.transactions}</td>
+            <td>${name}</td>
+            <td>${formatCurrency(stat.total)}</td>
+            <td>${formatCurrency(avg)}</td>
+            <td>${stat.count}</td>
         `;
         salesTeamTable.appendChild(row);
+    });
+}
+
+function updateMonthlySalesBySalespersonTable() {
+    const table = document.querySelector('#monthlySalesPersonTable tbody');
+    table.innerHTML = '';
+
+    const map = {};
+    filteredData.forEach(item => {
+        const name = item['Sales person name'];
+        const month = item.Month;
+        map[name] = map[name] || Array(12).fill(0);
+        map[name][month - 1] += item['Sales amount'];
+    });
+
+    Object.entries(map).forEach(([name, values]) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `<td>${name}</td>` + values.map(v =>
+            `<td>${v > 0 ? formatCurrency(v) : '-'}</td>`).join('');
+        table.appendChild(row);
     });
 }
