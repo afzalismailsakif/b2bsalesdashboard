@@ -1,6 +1,22 @@
 // Configuration - Replace with your Google Sheets published URL
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR5_ZuCTFWUvfyCNla7wmkg9O0BcM6IOW702XkVpOSbD3dc_4I1Hp1-hSaCLiW9u62wcYDSs9UE2faM/pub?output=csv';
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const MONTHLY_TARGETS = {
+    1: 0, // January
+    2: 35000, // February
+    3: 35000,
+    4: 20000,
+    5: 20000,
+    6: 35000,
+    7: 35000,
+    8: 35000,
+    9: 35000,
+    10: 35000,
+    11: 35000,
+    12: 35000
+};
+
+
 
 // Currency formatter for GBP
 const formatCurrency = (value) => {
