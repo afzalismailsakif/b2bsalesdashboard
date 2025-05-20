@@ -161,43 +161,49 @@
                 </div>
             </div>
 
-            <div class="performance-card">
-    <div class="performance-header">
-        <h3><i class="fas fa-calendar-week"></i> Monthly Sales by Salesperson</h3>
-    </div>
-    <div class="table-responsive">
-        <table class="table" id="monthlySalesPersonTable">
-            <thead>
-                <tr>
-                    <th>Salesperson</th>
-                    <th>Jan</th>
-                    <th>Feb</th>
-                    <th>Mar</th>
-                    <th>Apr</th>
-                    <th>May</th>
-                    <th>Jun</th>
-                    <th>Jul</th>
-                    <th>Aug</th>
-                    <th>Sep</th>
-                    <th>Oct</th>
-                    <th>Nov</th>
-                    <th>Dec</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Filled by JavaScript -->
-            </tbody>
-        </table>
-    </div>
-
-                <div class="chart-card">
-    <div class="chart-header">
-        <h3><i class="fas fa-bullseye"></i> Monthly Target Achievement (%)</h3>
-    </div>
-    <div class="chart-container">
-        <canvas id="monthlyTargetChart"></canvas>
-    </div>
+            <!-- Monthly Sales by Salesperson (left column) -->
+<div class="performance-card">
+  <div class="performance-header">
+    <h3><i class="fas fa-calendar-week"></i> Monthly Sales by Salesperson</h3>
+  </div>
+  <div class="table-responsive">
+    <table class="table" id="monthlySalesPersonTable">
+      <thead>
+        <tr>
+          <th>Salesperson</th>
+          <th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th>
+          <th>May</th><th>Jun</th><th>Jul</th><th>Aug</th>
+          <th>Sep</th><th>Oct</th><th>Nov</th><th>Dec</th>
+        </tr>
+      </thead>
+      <tbody><!-- Filled by JavaScript --></tbody>
+    </table>
+  </div>
 </div>
+
+<!-- Monthly Target Achievement (right column) -->
+<div class="performance-card">
+  <div class="performance-header">
+    <h3><i class="fas fa-bullseye"></i> Monthly Target Achievement (%)</h3>
+  </div>
+  <div class="chart-container" style="height: 350px;">
+    <canvas id="monthlyTargetChart"></canvas>
+  </div>
+  <div class="table-responsive mt-3">
+    <table class="table table-sm" id="monthlyTargetTable">
+      <thead>
+        <tr>
+          <th>Month</th>
+          <th>Sales</th>
+          <th>Target</th>
+          <th>% Achieved</th>
+        </tr>
+      </thead>
+      <tbody><!-- JS fills this --></tbody>
+    </table>
+  </div>
+</div>
+
 
 </div>
 
