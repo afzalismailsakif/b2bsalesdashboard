@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modern Sales Dashboard</title>
+    <title>B2B Sales Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
@@ -13,13 +13,11 @@
 </head>
 <body>
     <div class="dashboard-container">
-        <!-- Header -->
         <header class="dashboard-header">
             <h1><i class="fas fa-chart-line"></i> Sales Performance Dashboard</h1>
             <div class="last-updated" id="lastUpdated"></div>
         </header>
 
-        <!-- Filters -->
         <div class="filters-section">
             <div class="filter-card">
                 <label for="yearFilter"><i class="fas fa-calendar-alt"></i> Year</label>
@@ -44,7 +42,6 @@
             </button>
         </div>
 
-        <!-- Summary Cards -->
         <div class="summary-section">
             <div class="summary-card total-sales">
                 <div class="card-icon">
@@ -84,13 +81,12 @@
             </div>
         </div>
 
-        <!-- Main Charts -->
         <div class="chart-section">
             <div class="chart-card">
                 <div class="chart-header">
                     <h3><i class="fas fa-calendar"></i> Yearly Sales by Salesperson</h3>
                     <div class="chart-actions">
-                        <button class="btn btn-sm btn-outline-secondary chart-toggle" data-chart="yearlyChart">
+                        <button class="btn btn-sm btn-outline-secondary chart-toggle" data-chart="yearlySalesChart">
                             <i class="fas fa-eye"></i> Toggle
                         </button>
                     </div>
@@ -104,7 +100,7 @@
                 <div class="chart-header">
                     <h3><i class="fas fa-chart-bar"></i> Monthly Sales Trend</h3>
                     <div class="chart-actions">
-                        <button class="btn btn-sm btn-outline-secondary chart-toggle" data-chart="monthlyChart">
+                        <button class="btn btn-sm btn-outline-secondary chart-toggle" data-chart="monthlySalesChart">
                             <i class="fas fa-eye"></i> Toggle
                         </button>
                     </div>
@@ -115,7 +111,6 @@
             </div>
         </div>
 
-        <!-- Performance Section -->
         <div class="performance-section">
             <div class="performance-card">
                 <div class="performance-header">
@@ -131,9 +126,7 @@
                                 <th>% of Monthly Total</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <!-- Will be populated by JavaScript -->
-                        </tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div>
@@ -152,47 +145,39 @@
                                 <th>Transactions</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <!-- Will be populated by JavaScript -->
-                        </tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div>
 
             <div class="performance-card">
-    <div class="performance-header">
-        <h3><i class="fas fa-calendar-week"></i> Monthly Sales by Salesperson</h3>
-    </div>
-    <div class="table-responsive">
-        <table class="table" id="monthlySalesPersonTable">
-            <thead>
-                <tr>
-                    <th>Salesperson</th>
-                    <th>Jan</th>
-                    <th>Feb</th>
-                    <th>Mar</th>
-                    <th>Apr</th>
-                    <th>May</th>
-                    <th>Jun</th>
-                    <th>Jul</th>
-                    <th>Aug</th>
-                    <th>Sep</th>
-                    <th>Oct</th>
-                    <th>Nov</th>
-                    <th>Dec</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Filled by JavaScript -->
-            </tbody>
-        </table>
-    </div>
-</div>
+                <div class="performance-header">
+                    <h3><i class="fas fa-calendar-week"></i> Monthly Sales by Salesperson</h3>
+                </div>
+                <div class="table-responsive">
+                    <table class="table" id="monthlySalesPersonTable">
+                        <thead>
+                            <tr>
+                                <th>Salesperson</th>
+                                <th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th><th>May</th><th>Jun</th>
+                                <th>Jul</th><th>Aug</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Dec</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
 
-
+            <div class="performance-card">
+                <div class="performance-header">
+                    <h3><i class="fas fa-percentage"></i> Monthly Sales % Achieved</h3>
+                </div>
+                <div class="chart-container">
+                    <canvas id="monthlyTargetChart"></canvas>
+                </div>
+            </div>
         </div>
     </div>
-
     <script src="script.js"></script>
 </body>
 </html>
