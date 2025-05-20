@@ -17,6 +17,8 @@ let salesData = [];
 let filteredData = [];
 let yearlySalesChart, monthlySalesChart;
 
+
+// DOM Elements
 const yearFilter = document.getElementById('yearFilter');
 const monthFilter = document.getElementById('monthFilter');
 const salespersonFilter = document.getElementById('salespersonFilter');
@@ -28,7 +30,8 @@ const topPerformerElement = document.getElementById('topPerformer');
 const lastUpdatedElement = document.getElementById('lastUpdated');
 const topPerformersTable = document.querySelector('#topPerformersTable tbody');
 const salesTeamTable = document.querySelector('#salesTeamTable tbody');
-const monthlyTargetTable = document.querySelector('#monthlyTargetTable tbody');
+const monthlyTargetTable = document.querySelector('#monthlyTargetTable tbody');  
+const monthlySalesPersonTable = document.querySelector('#monthlySalesPersonTable tbody');  
 
 document.addEventListener('DOMContentLoaded', function () {
     applyFilters.addEventListener('click', applyDashboardFilters);
