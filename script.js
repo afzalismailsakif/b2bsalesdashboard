@@ -127,6 +127,7 @@ function updateSummary() {
     avgSalesElement.textContent = formatCurrency(avg);
     transactionCountElement.textContent = filteredData.length;
     topPerformerElement.textContent = top ? `${top.name} (${formatCurrency(top.amount)})` : '-';
+    updateCustomYearSales();
 }
 
 function getTopPerformer(data) {
@@ -404,3 +405,22 @@ document.getElementById('exportDashboardPDF').addEventListener('click', () => {
     });
 });
 
+
+function updateCustomYearSales() {
+    const currentYear = new Date().getFullYear();
+    const customYear = parseInt(yearFilter.value) || currentYear;
+
+    // Sales Year is Feb (customYear) to Jan (customYear + 1)
+    const customYearData = salesData.filter(d => {
+        const saleYear = parseInt(d['Sales year']);
+        const month = parseInt(d['Month']);
+        return (
+            (saleYear === customYear && month >= 2) ||
+            (saleYear === customYear + 1 && month === 1)
+        );
+    });
+
+    const customTotal = customYearData.reduce((sum, d) => sum + d['Sales amount'], 0);
+    const customSalesElement = document.getElementById('customYearSales');
+    customSalesElement.textContent = formatCurrency(customTotal);
+}
