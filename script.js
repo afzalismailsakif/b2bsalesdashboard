@@ -406,21 +406,25 @@ document.getElementById('exportDashboardPDF').addEventListener('click', () => {
 });
 
 
-function updateCustomYearSales() {
-    const currentYear = new Date().getFullYear();
-    const customYear = parseInt(yearFilter.value) || currentYear;
 
-    // Sales Year is Feb (customYear) to Jan (customYear + 1)
+function updateCustomYearSales() {
+    const selectedYear = yearFilter.value;
+    if (selectedYear === 'all') {
+        document.getElementById('customYearSales').textContent = '£0';
+        return;
+    }
+    const customYear = parseInt(selectedYear);
+
     const customYearData = salesData.filter(d => {
-        const saleYear = parseInt(d['Sales year']);
+        const year = parseInt(d['Sales year']);
         const month = parseInt(d['Month']);
         return (
-            (saleYear === customYear && month >= 2) ||
-            (saleYear === customYear + 1 && month === 1)
+            (year === customYear && month >= 2) ||
+            (year === customYear + 1 && month === 1)
         );
     });
 
     const customTotal = customYearData.reduce((sum, d) => sum + d['Sales amount'], 0);
-    const customSalesElement = document.getElementById('customYearSales');
-    customSalesElement.textContent = formatCurrency(customTotal);
+    document.getElementById('customYearSales').textContent = formatCurrency(customTotal);
 }
+
