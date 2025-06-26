@@ -225,7 +225,7 @@
 
         function updateMonthlySalesTargetChart() {
             const ctx = document.getElementById('monthlyTargetChart').getContext('2d');
-            const targets = [35000, 35000, 35000, 20000, 20000, 35000, 35000, 35000, 35000, 35000, 35000, 35000];
+            const targets = [35000, 35000, 35000, 20000, 20000, 20000, 35000, 35000, 35000, 35000, 35000, 35000];
             const actuals = Array(12).fill(0);
 
             filteredData.forEach(d => actuals[d['Month'] - 1] += d['Sales amount']);
