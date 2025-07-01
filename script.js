@@ -1,4 +1,4 @@
-        const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR5_ZuCTFWUvfyCNla7wmkg9O0BcM6IOW702XkVpOSbD3dc_4I1Hp1-hSaCLiW9u62wcYDSs9UE2faM/pub?output=csv';
+const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR5_ZuCTFWUvfyCNla7wmkg9O0BcM6IOW702XkVpOSbD3dc_4I1Hp1-hSaCLiW9u62wcYDSs9UE2faM/pub?output=csv';
         const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
         const MODERN_COLORS = [
@@ -33,6 +33,8 @@
         const topPerformersTable = document.querySelector('#topPerformersTable tbody');
         const salesTeamTable = document.querySelector('#salesTeamTable tbody');
         const monthlySalesPersonTable = document.querySelector('#monthlySalesPersonTable tbody');
+        const monthlySalesDetailsTable = document.querySelector('#monthlySalesDetailsTable tbody'); // New
+        const monthlySalesDetailsSection = document.querySelector('.monthly-sales-details-section'); // New
 
         document.addEventListener('DOMContentLoaded', () => {
             applyFilters.addEventListener('click', applyDashboardFilters);
@@ -111,6 +113,7 @@
             updateTopPerformersTable();
             updateSalesTeamTable();
             updateMonthlySalesBySalespersonTable();
+            updateMonthlySalesDetailsTable(); // New: Call the new function
         }
 
         function updateCharts() {
@@ -359,6 +362,35 @@
                     ${values.map(v => `<td>${v ? formatCurrency(v) : '-'}</td>`).join('')}
                 </tr>
             `).join('');
+        }
+
+        // New function to update the monthly sales details table
+        function updateMonthlySalesDetailsTable() {
+            const selectedMonth = monthFilter.value;
+            const selectedYear = yearFilter.value;
+            const selectedSalesperson = salespersonFilter.value;
+
+            if (selectedMonth !== 'all') {
+                // Filter data specifically for the selected month (and year/salesperson if also filtered)
+                const monthlyDetails = salesData.filter(d =>
+                    (selectedYear === 'all' || d['Sales year'] === selectedYear) &&
+                    (d['Month'] === parseInt(selectedMonth)) &&
+                    (selectedSalesperson === 'all' || d['Sales person name'] === selectedSalesperson)
+                );
+
+                monthlySalesDetailsTable.innerHTML = monthlyDetails.map(d => `
+                    <tr>
+                        <td>${d['Sales Date']}</td>
+                        <td>${d['Sales person name']}</td>
+                        <td>${d['Client Name']}</td>
+                        <td>${formatCurrency(d['Sales amount'])}</td>
+                    </tr>
+                `).join('');
+                monthlySalesDetailsSection.style.display = 'block'; // Show the section
+            } else {
+                monthlySalesDetailsTable.innerHTML = ''; // Clear table
+                monthlySalesDetailsSection.style.display = 'none'; // Hide the section
+            }
         }
 
         document.getElementById('exportDashboardPNG').addEventListener('click', () => {
