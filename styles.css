@@ -329,4 +329,7 @@ canvas {
     opacity: 1 !important;
 }
 
-
+/* New style for monthly sales details section */
+.monthly-sales-details-section {
+    margin-top: 30px;
+}
