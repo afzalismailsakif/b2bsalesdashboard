@@ -378,11 +378,10 @@ const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR5_ZuCTFWUvf
                     (selectedSalesperson === 'all' || d['Sales person name'] === selectedSalesperson)
                 );
 
+                // Modified: Only include Sales Person and Sales Amount
                 monthlySalesDetailsTable.innerHTML = monthlyDetails.map(d => `
                     <tr>
-                        <td>${d['Sales Date']}</td>
                         <td>${d['Sales person name']}</td>
-                        <td>${d['Client Name']}</td>
                         <td>${formatCurrency(d['Sales amount'])}</td>
                     </tr>
                 `).join('');
