@@ -228,7 +228,7 @@ const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR5_ZuCTFWUvf
 
         function updateMonthlySalesTargetChart() {
             const ctx = document.getElementById('monthlyTargetChart').getContext('2d');
-            const targets = [35000, 35000, 35000, 20000, 20000, 20000, 20000, 35000, 35000, 35000, 35000, 35000];
+            const targets = [35000, 35000, 35000, 20000, 20000, 20000, 20000, 20000, 35000, 35000, 35000, 35000];
             const actuals = Array(12).fill(0);
 
             filteredData.forEach(d => actuals[d['Month'] - 1] += d['Sales amount']);
