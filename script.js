@@ -8,7 +8,9 @@
 const CONFIG = {
   // Published-to-web CSV of the Google Sheet (File → Share → Publish to web → CSV)
   sheetUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR5_ZuCTFWUvfyCNla7wmkg9O0BcM6IOW702XkVpOSbD3dc_4I1Hp1-hSaCLiW9u62wcYDSs9UE2faM/pub?output=csv',
-  // Team target for each calendar month, January → December (£)
+  // Web app URL of the targets Apps Script (see targets-api.gs). Targets saved there are shared by everyone.
+  targetsApiUrl: 'https://script.google.com/macros/s/AKfycbwYYrGW7doSuy2Io_zwwHNsFGoKRGfuHKpe_-2lGKnPv3KKbT76FnTXNm9vmyMYLiGh_g/exec',
+  // Fallback team target for each calendar month, January → December (£), used until the shared targets load
   defaultTargets: [35000, 35000, 35000, 20000, 20000, 20000, 20000, 20000, 35000, 35000, 35000, 35000],
   fyStartMonth: 2,          // Financial year starts in February
   autoRefreshMinutes: 5,    // Re-check the sheet this often while the tab is open
@@ -47,6 +49,7 @@ let rows = [];
 let lastSync = null;
 let syncError = null;
 let targets = loadTargets();
+let targetsUpdatedAt = null;
 const state = { mode: 'fy', year: 'all', month: 'all', people: new Set() };
 const tx = { sort: 'period', dir: 'desc', page: 1, search: '' };
 const charts = {};
@@ -57,8 +60,9 @@ const $ = id => document.getElementById(id);
 /* ---------- Storage (best effort) ---------- */
 function store(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* ignore */ } }
 function read(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+// Last shared targets seen by this browser, so the page draws with them before the API answers.
 function loadTargets() {
-  const raw = read('b2b-targets');
+  const raw = read('b2b-targets-shared');
   if (raw) {
     try {
       const t = JSON.parse(raw);
@@ -149,17 +153,36 @@ function toRows(table) {
   return list;
 }
 
+const validTargets = t => Array.isArray(t) && t.length === 12 && t.every(n => typeof n === 'number' && isFinite(n) && n >= 0);
+
+async function fetchTargets() {
+  if (!CONFIG.targetsApiUrl) return;
+  try {
+    const sep = CONFIG.targetsApiUrl.includes('?') ? '&' : '?';
+    const res = await fetch(`${CONFIG.targetsApiUrl}${sep}t=${Date.now()}`, { cache: 'no-store' });
+    const data = await res.json();
+    if (!data.ok || !validTargets(data.targets)) throw new Error(data.error || 'Unexpected targets response');
+    targets = data.targets;
+    targetsUpdatedAt = data.updatedAt ? new Date(data.updatedAt) : null;
+    store('b2b-targets-shared', JSON.stringify(targets));
+  } catch (err) {
+    console.warn('Could not load shared targets, using the last known ones.', err);
+  }
+}
+
 async function loadData({ silent = false } = {}) {
   const btn = $('refreshBtn');
   btn.classList.add('spinning');
   setSync('loading');
   const before = rows.length;
+  const targetsReady = fetchTargets();
   try {
     const sep = CONFIG.sheetUrl.includes('?') ? '&' : '?';
     const res = await fetch(`${CONFIG.sheetUrl}${sep}t=${Date.now()}`, { cache: 'no-store' });
     if (!res.ok) throw new Error(`Google Sheets returned ${res.status}`);
     const parsed = toRows(parseCSV(await res.text()));
     if (!parsed.length) throw new Error('The sheet has no rows that could be read.');
+    await targetsReady;
     const first = !rows.length;
     rows = parsed;
     lastSync = new Date();
@@ -910,17 +933,53 @@ async function runExport(kind) {
 function openTargets() {
   $('targetsGrid').innerHTML = monthOrder().map(m =>
     `<label>${MONTHS[m - 1]}<span class="money"><span>£</span><input type="number" min="0" step="500" inputmode="numeric" data-month="${m}" value="${targets[m - 1]}"></span></label>`).join('');
+  const connected = !!CONFIG.targetsApiUrl;
+  $('targetsSub').textContent = !connected
+    ? 'Saving is not set up yet: add the targets web app URL to CONFIG.targetsApiUrl in script.js.'
+    : targetsUpdatedAt
+      ? `Changes apply for everyone. Last changed ${targetsUpdatedAt.toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}.`
+      : 'Changes apply for everyone who opens the dashboard.';
+  $('targetsPin').value = '';
+  $('targetsPin').disabled = !connected;
+  $('targetsSave').disabled = !connected;
+  setTargetsError('');
   $('targetsDialog').showModal();
+  $('targetsGrid').querySelector('input').focus();
 }
-function saveTargets(e) {
+function setTargetsError(msg) {
+  const el = $('targetsError');
+  el.textContent = msg;
+  el.hidden = !msg;
+}
+async function saveTargets(e) {
   e.preventDefault();
+  const pin = $('targetsPin').value.trim();
+  if (!pin) { setTargetsError('Enter the PIN to save.'); $('targetsPin').focus(); return; }
   const next = targets.slice();
   $('targetsGrid').querySelectorAll('input').forEach(i => { const v = parseFloat(i.value); next[+i.dataset.month - 1] = isFinite(v) && v >= 0 ? v : 0; });
-  targets = next;
-  store('b2b-targets', JSON.stringify(targets));
-  $('targetsDialog').close();
-  render();
-  toast('Targets saved');
+  const btn = $('targetsSave');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+  setTargetsError('');
+  try {
+    // text/plain keeps this a "simple" request, which Apps Script web apps accept from other sites.
+    const res = await fetch(CONFIG.targetsApiUrl, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ pin, targets: next }) });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || 'Could not save targets.');
+    targets = validTargets(data.targets) ? data.targets : next;
+    targetsUpdatedAt = data.updatedAt ? new Date(data.updatedAt) : new Date();
+    store('b2b-targets-shared', JSON.stringify(targets));
+    $('targetsDialog').close();
+    render();
+    toast('Targets saved for everyone');
+  } catch (err) {
+    console.error(err);
+    setTargetsError(err instanceof TypeError ? 'Couldn’t reach the targets sheet. Check your connection and try again.' : err.message);
+    if (/PIN/i.test(err.message)) { $('targetsPin').select(); }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Save targets';
+  }
 }
 
 /* ---------- UI helpers ---------- */
