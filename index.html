@@ -238,8 +238,13 @@
   <dialog id="targetsDialog" aria-labelledby="targetsTitle">
     <form method="dialog" id="targetsForm">
       <h2 id="targetsTitle">Monthly team targets</h2>
-      <p class="dialog-sub">Saved in this browser only. Change the defaults in <code>script.js</code> so everyone sees them.</p>
+      <p class="dialog-sub" id="targetsSub">Changes apply for everyone who opens the dashboard.</p>
       <div class="targets-grid" id="targetsGrid"></div>
+      <label class="pin-field">
+        <span>PIN</span>
+        <input type="password" id="targetsPin" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="Enter PIN to save">
+      </label>
+      <p class="form-error" id="targetsError" role="alert" hidden></p>
       <div class="dialog-actions">
         <button type="button" class="btn btn-ghost" id="targetsReset">Restore defaults</button>
         <span class="spacer"></span>
